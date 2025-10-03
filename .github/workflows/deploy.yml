@@ -1,0 +1,76 @@
+version: '3.8'
+services:
+  clientes:
+    image: ghcr.io/MI_ORG/Paquetes:latest
+    ports:
+      - "8081:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/clientes:/app/logs
+
+  cotizaciones:
+    image: ghcr.io/MI_ORG/Cotizaciones:latest
+    ports:
+      - "8082:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/cotizaciones:/app/logs
+
+  inventarios:
+    image: ghcr.io/MI_ORG/Inventarios:latest
+    ports:
+      - "8083:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/inventarios:/app/logs
+
+  modulo-jwt:
+    image: ghcr.io/MI_ORG/Modulo-JWT:latest
+    ports:
+      - "8084:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+    volumes:
+      - ./logs/modulo-jwt:/app/logs
+
+  paquetes:
+    image: ghcr.io/MI_ORG/Clientes:latest
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/paquetes:/app/logs
+
+  servicios:
+    image: ghcr.io/MI_ORG/Servicios:latest
+    ports:
+      - "8086:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/servicios:/app/logs
