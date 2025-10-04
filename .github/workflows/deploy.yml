@@ -22,23 +22,24 @@ jobs:
 
       - name: Deploy on EC2 with Docker Compose
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            set -e
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST '
+                set -e
+            
+                cd /home/ec2-user/infra || exit 1
+            
+                echo "🔄 Actualizando repo..."
+                git fetch origin
+                git reset --hard origin/main
+            
+                echo "⬇ Pulling Docker images..."
+                docker-compose pull
+            
+                echo "🚀 Levantando servicios..."
+                docker-compose up -d --remove-orphans
+            
+                echo "🧹 Limpiando recursos Docker..."
+                docker system prune -f
+            
+                echo "✅ Despliegue completado"
+            '
 
-            cd /home/ec2-user/infra || exit 1
-
-            echo "🔄 Syncing infra repo..."
-            git fetch origin
-            git reset --hard origin/main
-
-            echo "⬇ Pulling latest Docker images..."
-            docker-compose pull
-
-            echo "🚀 Starting/updating all services..."
-            docker-compose up -d --remove-orphans
-
-            echo "🧹 Cleaning unused Docker resources..."
-            docker system prune -f
-
-            echo "✅ Deployment completed successfully!"
-          '
