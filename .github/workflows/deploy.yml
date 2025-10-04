@@ -21,16 +21,17 @@ jobs:
           SERVICE: ${{ github.event.client_payload.service }}
           TAG: ${{ github.event.client_payload.tag }}
         run: |
-          echo "Deploying $SERVICE with tag $TAG"
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
-          set -e
-          cd /home/ec2-user/infra || exit 1
-        
-          # Login a GHCR
-          echo '${GHCR_PAT}' | docker login ghcr.io -u 'diegoosoriob' --password-stdin
-        
-          # Pull y deploy solo del servicio actualizado
-          docker-compose pull $SERVICE
-          docker-compose up -d $SERVICE
-          docker system prune -f
-        
+         echo "Deploying $SERVICE with tag $TAG"
+          
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST '
+            set -e
+            cd /home/ec2-user/infra || exit 1
+          
+            # Login a GHCR
+            echo "'"${GHCR_PAT}"'" | docker login ghcr.io -u "diegoosoriob" --password-stdin
+          
+            # Pull y deploy solo del servicio actualizado
+            docker-compose pull '"$SERVICE"'
+            docker-compose up -d '"$SERVICE"'
+            docker system prune -f
+          '
