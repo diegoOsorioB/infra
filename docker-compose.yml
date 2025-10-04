@@ -1,45 +1,77 @@
-name: Deploy Infrastructure to EC2
+version: '3.8'
 
-on:
-  workflow_dispatch:
-  repository_dispatch:
-    types: [microservice-updated]
+services:
+  clientes:
+    image: ghcr.io/diegoosoriob/clientes:latest
+    ports:
+      - "8081:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/clientes:/app/logs
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  cotizaciones:
+    image: ghcr.io/diegoosoriob/cotizaciones:latest
+    ports:
+      - "8082:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/cotizaciones:/app/logs
 
-    steps:
-      - name: Checkout infra repo
-        uses: actions/checkout@v4
+  inventarios:
+    image: ghcr.io/diegoosoriob/inventarios:latest
+    ports:
+      - "8083:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/inventarios:/app/logs
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+  modulo-jwt:
+    image: ghcr.io/diegoosoriob/modulo-jwt:latest
+    ports:
+      - "8084:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+    volumes:
+      - ./logs/modulo-jwt:/app/logs
 
-      - name: Deploy on EC2 with Docker Compose
-        run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            set -e
+  paquetes:
+    image: ghcr.io/diegoosoriob/paquetes:latest
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/paquetes:/app/logs
 
-            echo "🔄 Pulling latest infra repo..."
-            cd /home/ec2-user/infra || exit 1
-            git pull origin main
-
-            echo "🔑 Logging into GHCR..."
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
-
-            echo "⬇ Pulling latest Docker images..."
-            docker-compose pull
-
-            echo "🚀 Starting/updating all services..."
-            docker-compose up -d --remove-orphans
-
-            echo "🧹 Cleaning unused Docker resources..."
-            docker system prune -f
-
-            echo "✅ Deployment completed successfully!"
-          '
+  servicios:
+    image: ghcr.io/diegoosoriob/servicios:latest
+    ports:
+      - "8086:8080"
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./logs/servicios:/app/logs
