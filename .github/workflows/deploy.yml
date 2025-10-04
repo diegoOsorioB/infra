@@ -1,8 +1,7 @@
-name: Deploy Infrastructure to EC2
+name: Deploy Updated Microservice
 
 on:
-  workflow_dispatch:           # Ejecutar manualmente desde GitHub
-  repository_dispatch:         # Opcional: disparar desde workflow de microservicio
+  repository_dispatch:
     types: [microservice-updated]
 
 jobs:
@@ -10,36 +9,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout infra repo
-        uses: actions/checkout@v4
-
-      - name: Setup SSH key
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy on EC2 with Docker Compose
+      - name: Deploy microservice on EC2
+        env:
+          SERVICE: ${{ github.event.client_payload.service }}
+          TAG: ${{ github.event.client_payload.tag }}
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST '
-                set -e
-            
-                cd /home/ec2-user/infra || exit 1
-            
-                echo "🔄 Actualizando repo..."
-                git fetch origin
-                git reset --hard origin/main
-            
-                echo "⬇ Pulling Docker images..."
-                docker-compose pull
-            
-                echo "🚀 Levantando servicios..."
-                docker-compose up -d --remove-orphans
-            
-                echo "🧹 Limpiando recursos Docker..."
-                docker system prune -f
-            
-                echo "✅ Despliegue completado"
-            '
+          echo "Deploying $SERVICE with tag $TAG"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+            set -e
+            cd /home/ec2-user/infra || exit 1
 
+            # Actualiza la imagen específica
+            docker-compose pull \$SERVICE
+            docker-compose up -d \$SERVICE
+
+            # Limpia imágenes antiguas
+            docker system prune -f
+          "
