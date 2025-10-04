@@ -4,13 +4,12 @@ services:
   clientes:
     image: ghcr.io/diegoosoriob/clientes:latest
     ports:
-      - "8081:8080"
+      - "8084:8080"
     restart: always
+    env_file:
+      - .env
     environment:
       - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./logs/clientes:/app/logs
 
@@ -19,32 +18,32 @@ services:
     ports:
       - "8082:8080"
     restart: always
+    env_file:
+      - .env
     environment:
       - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./logs/cotizaciones:/app/logs
 
   inventarios:
     image: ghcr.io/diegoosoriob/inventarios:latest
     ports:
-      - "8083:8080"
+      - "8085:8080"
     restart: always
+    env_file:
+      - .env
     environment:
       - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./logs/inventarios:/app/logs
 
   modulo-jwt:
     image: ghcr.io/diegoosoriob/modulo-jwt:latest
     ports:
-      - "8084:8080"
+      - "8080:8080"
     restart: always
+    env_file:
+      - .env
     environment:
       - JAVA_OPTS=-Xms64m -Xmx128m
     volumes:
@@ -53,25 +52,23 @@ services:
   paquetes:
     image: ghcr.io/diegoosoriob/paquetes:latest
     ports:
-      - "8080:8080"
+      - "8081:8080"
     restart: always
+    env_file:
+      - .env
     environment:
       - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./logs/paquetes:/app/logs
 
   servicios:
     image: ghcr.io/diegoosoriob/servicios:latest
     ports:
-      - "8086:8080"
+      - "8083:8080"
     restart: always
+    env_file:
+      - .env
     environment:
       - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./logs/servicios:/app/logs
