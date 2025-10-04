@@ -6,8 +6,6 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
     volumes:
       - ./logs/clientes:/app/logs
 
@@ -18,8 +16,6 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
     volumes:
       - ./logs/cotizaciones:/app/logs
 
@@ -30,8 +26,6 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
     volumes:
       - ./logs/inventarios:/app/logs
 
@@ -54,8 +48,6 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
     volumes:
       - ./logs/paquetes:/app/logs
 
@@ -66,7 +58,5 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
     volumes:
       - ./logs/servicios:/app/logs
