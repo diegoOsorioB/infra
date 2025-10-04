@@ -55,7 +55,7 @@ services:
       - "8081:8080"
     restart: always
     env_file:
-      - .env
+      - /home/ec2-user/infra_backup/.env
     environment:
       - JAVA_OPTS=-Xms64m -Xmx128m
       - SERVER_PORT=8080
