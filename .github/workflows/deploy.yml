@@ -1,76 +1,34 @@
-version: '3.8'
-services:
-  clientes:
-    image: ghcr.io/MI_ORG/Paquetes:latest
-    ports:
-      - "8081:8080"
-    restart: always
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./logs/clientes:/app/logs
+name: Deploy Infrastructure to EC2
 
-  cotizaciones:
-    image: ghcr.io/MI_ORG/Cotizaciones:latest
-    ports:
-      - "8082:8080"
-    restart: always
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./logs/cotizaciones:/app/logs
+on:
+  workflow_dispatch:           # Ejecutar manualmente desde GitHub
+  repository_dispatch:         # Opcional: disparar desde workflow de microservicio
+    types: [microservice-updated]
 
-  inventarios:
-    image: ghcr.io/MI_ORG/Inventarios:latest
-    ports:
-      - "8083:8080"
-    restart: always
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./logs/inventarios:/app/logs
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-  modulo-jwt:
-    image: ghcr.io/MI_ORG/Modulo-JWT:latest
-    ports:
-      - "8084:8080"
-    restart: always
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
-    volumes:
-      - ./logs/modulo-jwt:/app/logs
+    steps:
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
 
-  paquetes:
-    image: ghcr.io/MI_ORG/Clientes:latest
-    ports:
-      - "8080:8080"
-    restart: always
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./logs/paquetes:/app/logs
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-  servicios:
-    image: ghcr.io/MI_ORG/Servicios:latest
-    ports:
-      - "8086:8080"
-    restart: always
-    environment:
-      - JAVA_OPTS=-Xms64m -Xmx128m
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./logs/servicios:/app/logs
+      - name: Deploy on EC2 with Docker Compose
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            set -e
+
+            cd /home/ec2-user/infra || exit 1
+            git pull origin main
+
+            docker-compose pull
+            docker-compose up -d --remove-orphans
+            docker system prune -f
+          '
